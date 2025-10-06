@@ -1,11 +1,12 @@
 import { NavBar, DatePicker } from 'antd-mobile'
 import './index.scss'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import classNames from 'classnames'
 import dayjs from 'dayjs'
 import { useSelector } from 'react-redux'
 import {useMemo} from 'react'
 import _ from 'lodash'
+import DailyBill from './components/DayBill'
 const Month = () => {
   const [dateVisible,setDateVisible]=useState(false)
   const billList=useSelector(state=>state.bill.billList)
@@ -26,6 +27,13 @@ const monthResult= useMemo(()=>{
         total: pay+income
     }
   },[currentMonthList])
+  useEffect(()=>{
+    const nowDate=dayjs().format('YYYY-MM')
+    if(monthGroup[nowDate]){
+        setCurrentMonthList(monthGroup[nowDate] || [])
+    }
+    
+  },[monthGroup])
   const onConfirm=(date)=>{
     setDateVisible(false)
     const formatDate = dayjs(date).format('YYYY-MM')
@@ -37,6 +45,14 @@ const monthResult= useMemo(()=>{
     setCurrentDate(formatDate)
     console.log(currentMonthList)
   }
+  const dayGroup=useMemo(()=>{
+    const groupData=_.groupBy(currentMonthList,(item)=>dayjs(item.date).format('YYYY-MM-DD'))
+    const keys=Object.keys(groupData)
+    return {
+        groupData,
+        keys
+    }
+  },[currentMonthList])
   return (
     <div className="monthlyBill">
       <NavBar className="nav" backArrow={false}>
@@ -78,6 +94,12 @@ const monthResult= useMemo(()=>{
             max={new Date()}
           />
         </div>
+        {
+            dayGroup.keys.map(key=>{
+                return <DailyBill key={key} date={key} billList={dayGroup.groupData[key]}/>
+            })
+        }
+        
       </div>
     </div >
   )
