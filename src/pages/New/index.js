@@ -3,11 +3,36 @@ import Icon from '@/components/Icon'
 import './index.scss'
 import classNames from 'classnames'
 import { billListData } from '@/contants'
-import { useNavigate } from 'react-router-dom'
+import { data, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import dayjs from 'dayjs'
+import { addBillList } from '@/store/modules/billStore'
+import { useDispatch } from 'react-redux'
 const New = () => {
   const navigate = useNavigate()
   const [billType,setBillType]=useState('pay')
+  const [money,setMoney]=useState(0)
+  const moneyChange=(value)=>{
+    setMoney(value)
+  }
+  const dispatch=useDispatch()
+  const [useFor,setUseFor]=useState('')
+  const saveBill=()=>{
+    const data={
+      type: billType,
+      money: billType==='pay'?-money:+money,
+      date:date,
+      useFor: useFor
+    }
+    console.log(data)
+    dispatch(addBillList(data))
+  }
+  const [date,setDate]=useState()
+  const [dateVisible,setDateVisible]=useState(false)
+  const dateConfirm=(value)=>{
+    setDate(value)
+    setDateVisible(false)
+  }
   return (
     <div className="keepAccounts">
       <NavBar className="nav" onBack={() => navigate(-1)}>
@@ -19,14 +44,20 @@ const New = () => {
           <Button
             shape="rounded"
             className={classNames(billType==='pay'?'selected':'')}
-            onClick={()=>setBillType('pay')}
+            onClick={()=>{
+              setBillType('pay')
+              setUseFor('')
+            }}
           >
             支出
           </Button>
           <Button
             className={classNames(billType==='income'?'selected':'')}
             shape="rounded"
-            onClick={()=>setBillType('income')}
+            onClick={()=>{
+              setBillType('income')
+              setUseFor('')
+            }}
           >
             收入
           </Button>
@@ -36,11 +67,13 @@ const New = () => {
           <div className="kaForm">
             <div className="date">
               <Icon type="calendar" className="icon" />
-              <span className="text">{'今天'}</span>
+              <span className="text" onClick={()=>setDateVisible(true)}>{dayjs(date).format('YYYY-MM-DD')}</span>
               <DatePicker
                 className="kaDate"
                 title="记账日期"
                 max={new Date()}
+                visible={dateVisible}
+                onConfirm={dateConfirm}
               />
             </div>
             <div className="kaInput">
@@ -48,6 +81,8 @@ const New = () => {
                 className="input"
                 placeholder="0.00"
                 type="number"
+                value={money}
+                onChange={moneyChange}
               />
               <span className="iconYuan">¥</span>
             </div>
@@ -66,10 +101,10 @@ const New = () => {
                     <div
                       className={classNames(
                         'item',
-                        ''
+                        useFor===item.type? 'selected':''
                       )}
                       key={item.type}
-
+                      onClick={()=>setUseFor(item.type)}
                     >
                       <div className="icon">
                         <Icon type={item.type} />
@@ -84,8 +119,8 @@ const New = () => {
         })}
       </div>
 
-      <div className="btns">
-        <Button className="btn save">
+      <div className="btns" >
+        <Button className="btn save" onClick={saveBill}>
           保 存
         </Button>
       </div>
