@@ -9,18 +9,33 @@ import _ from 'lodash'
 const Month = () => {
   const [dateVisible,setDateVisible]=useState(false)
   const billList=useSelector(state=>state.bill.billList)
-  const mothGroup=useMemo(()=>{
+  const [currentMonthList,setCurrentMonthList]=useState([])
+  const monthGroup=useMemo(()=>{
     return _.groupBy(billList,(item)=>dayjs(item.date).format('YYYY-MM'))
   },[billList])
-  console.log(mothGroup)
+  console.log(monthGroup)
   const [currentDate,setCurrentDate]=useState(()=>{
     return dayjs(new Date()).format("YYYY-MM")
   })
+const monthResult= useMemo(()=>{
+    const pay = currentMonthList.filter(item=>item.type==='pay').reduce((a,c)=>a+c.money,0)
+    const income = currentMonthList.filter(item=>item.type==='income').reduce((a,c)=>a+c.money,0)
+    return {
+        pay,
+        income,
+        total: pay+income
+    }
+  },[currentMonthList])
   const onConfirm=(date)=>{
     setDateVisible(false)
     const formatDate = dayjs(date).format('YYYY-MM')
-    console.log(date)
+    //console.log(date)
+    console.log('formatDate:', formatDate)
+    console.log('monthGroup:', monthGroup)
+    console.log('monthGroup[formatDate]:', monthGroup[formatDate])
+    setCurrentMonthList(monthGroup[formatDate] || [])
     setCurrentDate(formatDate)
+    console.log(currentMonthList)
   }
   return (
     <div className="monthlyBill">
@@ -39,15 +54,15 @@ const Month = () => {
           {/* 统计区域 */}
           <div className='twoLineOverview'>
             <div className="item">
-              <span className="money">{100}</span>
+              <span className="money">{monthResult.pay.toFixed(2)}</span>
               <span className="type">支出</span>
             </div>
             <div className="item">
-              <span className="money">{200}</span>
+              <span className="money">{monthResult.income.toFixed(2)}</span>
               <span className="type">收入</span>
             </div>
             <div className="item">
-              <span className="money">{200}</span>
+              <span className="money">{monthResult.total.toFixed(2)}</span>
               <span className="type">结余</span>
             </div>
           </div>
